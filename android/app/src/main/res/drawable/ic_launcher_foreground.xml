@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 白色文件夹 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M24,34 L38,34 L43,40 L84,40 L84,76 A4,4 0 0 1 80,80 L28,80 A4,4 0 0 1 24,76 Z" />
+    <!-- 中间连接箭头：表示"电脑↔手机"链路 -->
+    <path
+        android:strokeColor="#1D4ED8"
+        android:strokeWidth="6"
+        android:strokeLineCap="round"
+        android:pathData="M38,60 L66,60 M58,52 L66,60 L58,68" />
+</vector>

@@ -1,0 +1,26 @@
+{
+  "FixedFileInfo": {
+    "FileVersion": { "Major": 4, "Minor": 2, "Patch": 0, "Build": 0 },
+    "ProductVersion": { "Major": 4, "Minor": 2, "Patch": 0, "Build": 0 },
+    "FileFlagsMask": "3f",
+    "FileFlags": "00",
+    "FileOS": "040004",
+    "FileType": "01",
+    "FileSubType": "00"
+  },
+  "Icon": "icon.ico",
+  "StringFileInfo": {
+    "Comments": "FileBridge 个人文件远程访问工具",
+    "CompanyName": "FileBridge",
+    "FileDescription": "FileBridge Server \u2014 \u624b\u673a\u968f\u65f6\u8bbf\u95ee\u7535\u8111\u6587\u4ef6\u7684\u4e2a\u4eba\u7f51\u76d8",
+    "FileVersion": "4.2.0",
+    "InternalName": "filebridge-server",
+    "LegalCopyright": "Copyright (c) 2026 FileBridge. All rights reserved.",
+    "OriginalFilename": "filebridge-server.exe",
+    "ProductName": "FileBridge",
+    "ProductVersion": "4.2.0"
+  },
+  "VarFileInfo": {
+    "Translation": { "LangID": "0804", "CharsetID": "04B0" }
+  }
+}

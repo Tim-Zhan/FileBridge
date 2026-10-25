@@ -1,0 +1,26 @@
+{
+  "FixedFileInfo": {
+    "FileVersion": { "Major": 4, "Minor": 2, "Patch": 0, "Build": 0 },
+    "ProductVersion": { "Major": 4, "Minor": 2, "Patch": 0, "Build": 0 },
+    "FileFlagsMask": "3f",
+    "FileFlags": "00",
+    "FileOS": "040004",
+    "FileType": "01",
+    "FileSubType": "00"
+  },
+  "Icon": "icon.ico",
+  "StringFileInfo": {
+    "Comments": "FileBridge 个人文件远程访问工具 安装程序",
+    "CompanyName": "FileBridge",
+    "FileDescription": "FileBridge 电脑端安装程序",
+    "FileVersion": "4.2.0",
+    "InternalName": "FileBridge-Setup",
+    "LegalCopyright": "Copyright (c) 2026 FileBridge. All rights reserved.",
+    "OriginalFilename": "FileBridge-电脑端-安装版.exe",
+    "ProductName": "FileBridge",
+    "ProductVersion": "4.2.0"
+  },
+  "VarFileInfo": {
+    "Translation": { "LangID": "0804", "CharsetID": "04B0" }
+  }
+}

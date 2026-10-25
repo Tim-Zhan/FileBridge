@@ -1,0 +1,20 @@
+# 构建产物
+server/versioninfo.syso
+installer/versioninfo.syso
+installer/payload.zip
+
+# 依赖与缓存
+desktop/node_modules/
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
+
+# 签名与密钥（严禁入库）
+android/keystore/
+
+# 发布安装包（走 GitHub Release 资产）
+dist/
+*.zip
+*.exe
+*.apk

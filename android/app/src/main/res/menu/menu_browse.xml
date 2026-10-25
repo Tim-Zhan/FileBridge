@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_upload"
+        android:icon="@android:drawable/ic_menu_upload"
+        android:iconTint="?attr/colorOnPrimary"
+        android:title="@string/upload"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_clear_memory"
+        android:title="@string/clear_memory"
+        app:showAsAction="never" />
+</menu>

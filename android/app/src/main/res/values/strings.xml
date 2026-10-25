@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FileBridge</string>
+    <string name="servers_title">我的服务器</string>
+    <string name="add_server">添加服务器</string>
+    <string name="empty_servers">还没有服务器\n点击右下角 + 添加</string>
+    <string name="name_hint">名称（如：家里电脑）</string>
+    <string name="host_hint">地址（IP 或主机名，外网用 100.x.x.x）</string>
+    <string name="port_hint">端口（默认 8123）</string>
+    <string name="username_hint">用户名</string>
+    <string name="password_hint">密码</string>
+    <string name="save">保存</string>
+    <string name="cancel">取消</string>
+    <string name="edit">编辑</string>
+    <string name="delete">删除</string>
+    <string name="loading">加载中…</string>
+    <string name="refresh">刷新</string>
+    <string name="back_to_parent">返回上级</string>
+    <string name="download">下载中…</string>
+    <string name="download_done">下载完成，正在打开</string>
+    <string name="no_app">没有应用能打开此文件</string>
+    <string name="auth_failed">用户名或密码错误</string>
+    <string name="net_error">无法连接服务器，请检查地址和网络</string>
+    <string name="file_too_big">文件过大，暂不支持流式预览，请直接下载</string>
+    <string name="upload">上传</string>
+    <string name="uploading">正在上传…</string>
+    <string name="upload_done">已上传</string>
+    <string name="upload_failed">上传失败</string>
+    <string name="read_file_failed">无法读取所选文件</string>
+    <string name="clear_memory">清除打开方式记忆</string>
+    <string name="clear_memory_done">已清除，下次打开会重新选择应用</string>
+    <string name="preview">预览</string>
+    <string name="open_with_other">用其他应用打开</string>
+    <string name="save_to">下载到…</string>
+    <string name="saving">保存中…</string>
+    <string name="saved">已保存到所选位置</string>
+    <string name="save_failed">保存失败</string>
+    <string name="preview_first">请先点开预览一次，缓存后可调用其它应用</string>
+    <string name="downloading">下载中…</string>
+</resources>
