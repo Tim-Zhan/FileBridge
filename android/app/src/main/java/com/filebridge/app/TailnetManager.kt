@@ -170,7 +170,8 @@ object TailnetManager {
                 Log.d(TAG, "prefs: ${prefsResp.statusCode()} $prefsBody")
                 CrashLog.log("Tailnet", "login: prefs 返回 ${prefsResp.statusCode()} $prefsBody")
                 if (prefsResp.statusCode() !in 200L..299L) {
-                    infoRef.set(NetInfo(NetState.Error, detail = "读取组网配置失败 (${prefsResp.statusCode()})"))
+                    CrashLog.log("Tailnet", "prefs 非 2xx，body=$prefsBody")
+                    infoRef.set(NetInfo(NetState.Error, detail = "读取组网配置失败 (${prefsResp.statusCode()}): ${prefsBody.take(200)}"))
                     notifyListeners()
                     return@launch
                 }
@@ -188,7 +189,8 @@ object TailnetManager {
                 Log.d(TAG, "start: ${startResp.statusCode()} $startBody")
                 CrashLog.log("Tailnet", "login: start 返回 ${startResp.statusCode()} $startBody")
                 if (startResp.statusCode() !in 200L..299L) {
-                    infoRef.set(NetInfo(NetState.Error, detail = "组网启动失败 (${startResp.statusCode()})"))
+                    CrashLog.log("Tailnet", "start 非 2xx，body=$startBody")
+                    infoRef.set(NetInfo(NetState.Error, detail = "组网启动失败 (${startResp.statusCode()}): ${startBody.take(200)}"))
                     notifyListeners()
                     return@launch
                 }

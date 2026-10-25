@@ -11,8 +11,8 @@ android {
         applicationId = "com.filebridge.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 8
-        versionName = "1.9"
+        versionCode = 9
+        versionName = "1.10"
     }
 
     signingConfigs {
