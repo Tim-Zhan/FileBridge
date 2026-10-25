@@ -18,6 +18,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import libtailscale.Application
+import libtailscale.InputStream
 import libtailscale.Libtailscale
 import org.json.JSONObject
 import java.util.concurrent.atomic.AtomicReference
@@ -63,6 +64,9 @@ object TailnetManager {
     private var context: Context? = null
 
     @Volatile
+    private var initFailedMsg: String? = null
+
+    @Volatile
     private var service: FileBridgeVpnService? = null
 
     @Volatile
@@ -77,28 +81,42 @@ object TailnetManager {
     private val scope = CoroutineScope(Dispatchers.IO)
     private var pollJob: Job? = null
 
-    fun init(ctx: Context) {
+    /**
+     * 按需初始化组网核心（幂等）。只在用户真正使用组网功能时调用，
+     * 全程 try-catch：失败不会崩溃，只会让组网不可用，其余功能不受影响。
+     */
+    fun ensureInit(ctx: Context) {
         if (application != null) return
-        context = ctx.applicationContext
-        createNotificationChannel(ctx)
-        try {
-            val dataDir = ctx.applicationContext.filesDir.absolutePath + "/tailscale"
-            application = Libtailscale.start(
-                dataDir,
-                "",
-                false,
-                AppContextImpl(ctx.applicationContext)
-            )
-            Log.d(TAG, "Tailscale 核心已启动")
-            scope.launch {
-                refreshStatus()
-                startPolling()
+        if (initFailedMsg != null) return
+        synchronized(this) {
+            if (application != null) return
+            context = ctx.applicationContext
+            createNotificationChannel(ctx)
+            try {
+                val dataDir = ctx.applicationContext.filesDir.absolutePath + "/tailscale"
+                application = Libtailscale.start(
+                    dataDir,
+                    "",
+                    false,
+                    AppContextImpl(ctx.applicationContext)
+                )
+                Log.d(TAG, "Tailscale 核心已启动")
+                scope.launch {
+                    refreshStatus()
+                    startPolling()
+                }
+            } catch (e: Throwable) {
+                Log.e(TAG, "Tailscale 核心启动失败: ${e.message}")
+                markInitFailed(e.message ?: "未知错误")
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Tailscale 核心启动失败: ${e.message}")
-            infoRef.set(NetInfo(NetState.Error, detail = "组网核心启动失败"))
-            notifyListeners()
         }
+    }
+
+    /** 组网核心启动失败时置位（App 降级为局域网模式，不闪退） */
+    fun markInitFailed(msg: String) {
+        initFailedMsg = msg
+        infoRef.set(NetInfo(NetState.Error, detail = "组网不可用：$msg"))
+        notifyListeners()
     }
 
     /** 每 2 秒轮询一次组网状态 */
@@ -139,12 +157,29 @@ object TailnetManager {
     fun login() {
         val app = application ?: return
         scope.launch {
+            CrashLog.log("Tailnet", "login: 开始（state=${TailnetManager.currentInfo().state}）")
             try {
-                infoRef.set(NetInfo(NetState.NeedsLogin, detail = "正在打开授权页…"))
+                infoRef.set(NetInfo(NetState.NeedsLogin, detail = "正在启动组网并打开授权页…"))
                 notifyListeners()
+                // 官方登录流程：先 start 启动后端，再 login-interactive（缺 start 会空指针崩溃）
+                CrashLog.log("Tailnet", "login: 调用 /localapi/v0/start")
+                val startResp = app.callLocalAPI(
+                    30000, "POST", "/localapi/v0/start",
+                    StringBody("""{"UpdatePrefs":{"WantRunning":true},"AuthKey":null}""")
+                )
+                val startBody = String(startResp.bodyBytes() ?: ByteArray(0))
+                Log.d(TAG, "start: ${startResp.statusCode()} $startBody")
+                CrashLog.log("Tailnet", "login: start 返回 ${startResp.statusCode()} $startBody")
+                if (startResp.statusCode() !in 200L..299L) {
+                    infoRef.set(NetInfo(NetState.Error, detail = "组网启动失败 (${startResp.statusCode()})"))
+                    notifyListeners()
+                    return@launch
+                }
+                CrashLog.log("Tailnet", "login: 调用 /localapi/v0/login-interactive")
                 val resp = app.callLocalAPI(30000, "POST", "/localapi/v0/login-interactive", null)
                 val body = String(resp.bodyBytes() ?: ByteArray(0))
                 Log.d(TAG, "login-interactive: ${resp.statusCode()} $body")
+                CrashLog.log("Tailnet", "login: login-interactive 返回 ${resp.statusCode()} $body")
                 if (resp.statusCode() !in 200L..299L) {
                     infoRef.set(NetInfo(NetState.Error, detail = "登录请求失败 (${resp.statusCode()})"))
                     notifyListeners()
@@ -356,5 +391,21 @@ object TailnetManager {
     fun shutdown() {
         pollJob?.cancel()
         stopVpn()
+    }
+
+    /** 把字符串包装成 gomobile InputStream（callLocalAPI 的请求体） */
+    private class StringBody(private val content: String) : InputStream {
+        private val data = content.toByteArray(Charsets.UTF_8)
+        private var consumed = 0
+
+        override fun read(): ByteArray? {
+            if (consumed >= data.size) return null
+            val chunk = data.copyOfRange(consumed, data.size)
+            consumed = data.size
+            return chunk
+        }
+
+        override fun close() {
+        }
     }
 }

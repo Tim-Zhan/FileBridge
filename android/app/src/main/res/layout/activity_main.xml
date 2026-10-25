@@ -1,72 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/colorSurface">
 
-    <!-- 组网助手卡片 -->
+    <!-- 垂直布局：组网卡片固定顶部占位，列表在下方滚动，物理上不可能重叠 -->
     <LinearLayout
-        android:id="@+id/netCard"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="?attr/colorPrimaryContainer"
-        android:padding="14dp"
-        android:layout_marginHorizontal="12dp"
-        android:layout_marginTop="10dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Tailscale 组网（已内置于本 App）"
-            android:textColor="?attr/colorOnPrimaryContainer"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/netState"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="组网未初始化"
-            android:textColor="?attr/colorOnPrimaryContainer"
-            android:textSize="13sp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btnNetAction"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="登录组网" />
-
-            <Button
-                android:id="@+id/btnNetLogout"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="退出登录"
-                android:visibility="gone" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/serverList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:paddingHorizontal="12dp"
-        android:paddingTop="96dp"
-        android:paddingVertical="12dp"
-        android:paddingBottom="88dp" />
+        android:orientation="vertical">
 
+        <!-- 组网助手卡片（固定占据顶部自己的空间） -->
+        <LinearLayout
+            android:id="@+id/netCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="?attr/colorPrimaryContainer"
+            android:padding="14dp"
+            android:layout_marginHorizontal="12dp"
+            android:layout_marginTop="10dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tailscale 组网（已内置于本 App）"
+                android:textColor="?attr/colorOnPrimaryContainer"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/netState"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="组网未启动"
+                android:textColor="?attr/colorOnPrimaryContainer"
+                android:textSize="13sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btnNetAction"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="登录组网" />
+
+                <Button
+                    android:id="@+id/btnNetLogout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="退出登录"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnExportLog"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="导出诊断日志"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- 服务器列表（在组网卡片正下方） -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/serverList"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="4dp"
+            android:clipToPadding="false"
+            android:paddingHorizontal="12dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="88dp" />
+    </LinearLayout>
+
+    <!-- 空列表提示（叠加显示，不影响点击） -->
     <TextView
         android:id="@+id/emptyView"
         android:layout_width="wrap_content"
@@ -78,6 +96,7 @@
         android:textSize="16sp"
         android:visibility="gone" />
 
+    <!-- 添加服务器按钮（叠加显示，可点击） -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAdd"
         android:layout_width="wrap_content"
@@ -89,4 +108,4 @@
         app:backgroundTint="?attr/colorPrimary"
         app:tint="?attr/colorOnPrimary" />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</FrameLayout>

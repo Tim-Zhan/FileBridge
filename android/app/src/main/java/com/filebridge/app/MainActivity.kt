@@ -47,6 +47,8 @@ class MainActivity : AppCompatActivity(), TailnetManager.Listener {
         btnNetLogout = binding.btnNetLogout
 
         btnNetAction.setOnClickListener {
+            // 组网核心按需启动：点击按钮时才初始化（失败只影响组网，不影响 App）
+            TailnetManager.ensureInit(this)
             when (TailnetManager.currentInfo().state) {
                 TailnetManager.NetState.Ready,
                 TailnetManager.NetState.NeedsLogin -> {
@@ -67,6 +69,11 @@ class MainActivity : AppCompatActivity(), TailnetManager.Listener {
                 .setPositiveButton("退出") { _, _ -> TailnetManager.logout() }
                 .setNegativeButton("取消", null)
                 .show()
+        }
+
+        // 诊断日志：闪退后重开 App，可导出 diag.log 用于定位
+        binding.btnExportLog.setOnClickListener {
+            exportDiagnosticLog()
         }
 
         TailnetManager.addListener(this)
@@ -183,6 +190,34 @@ class MainActivity : AppCompatActivity(), TailnetManager.Listener {
 
     companion object {
         const val REQ_VPN_PREPARE = 9001
+    }
+
+    /** 通过系统分享导出诊断日志（直接发文本，不依赖文件路径，最稳） */
+    private fun exportDiagnosticLog() {
+        try {
+            val logFile = CrashLog.getLogFile() ?: run {
+                Toast.makeText(this, "暂无诊断日志", Toast.LENGTH_SHORT).show()
+                return
+            }
+            if (!logFile.exists()) {
+                Toast.makeText(this, "暂无诊断日志", Toast.LENGTH_SHORT).show()
+                return
+            }
+            val all = logFile.readText()
+            val lines = all.lines()
+            val tail = lines.takeLast(200).joinToString("\n")
+            val share = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(
+                    Intent.EXTRA_TEXT,
+                    "FileBridge 诊断日志（共 ${lines.size} 行，取末尾 200 行）：\n\n$tail"
+                )
+            }
+            startActivity(Intent.createChooser(share, "导出诊断日志"))
+        } catch (e: Exception) {
+            CrashLog.log("ExportLog", "导出失败: ${e.message}\n${e.stackTraceToString()}")
+            Toast.makeText(this, "导出失败，已把错误写入日志: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
     }
 
     inner class ServerAdapter(
