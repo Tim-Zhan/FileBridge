@@ -3,9 +3,9 @@
 > 手机随时访问电脑文件 —— 体验像本地一样。
 > Your PC's files, in your pocket — browse, preview, and transfer as if they were local.
 
-**信鸽（PigeonFile）** 是一套「电脑 ⇄ 手机」文件桥接工具：电脑上装一份服务端，手机上装一份客户端，之后无论在同一个 WiFi 下、还是在千里之外的 4G/5G 网络，手机都能像翻本地文件一样浏览、预览、下载、上传电脑里的文件。名字取自「飞鸽传书」——把电脑上的文件，像信鸽一样送到你的掌上。
+**信鸽（PigeonFile）** 是一款**手机电脑文件互传 / 远程访问**开源工具：电脑上装一份服务端，手机上装一份客户端，之后无论在同一个 WiFi 下、还是在千里之外的 4G/5G 网络，手机都能像翻本地文件一样浏览、预览、下载、上传电脑里的文件，支持**跨目录搜索**与 **Tailscale 一键组网**（无需公网 IP、无需端口映射）。名字取自「飞鸽传书」——把电脑上的文件，像信鸽一样送到你的掌上。
 
-**PigeonFile** is a PC ↔ Phone file bridge. Install the server on your computer and the client on your phone, and from then on — whether you are on the same Wi-Fi or thousands of miles away on cellular data — you can browse, preview, download, and upload files on your PC, just as if they were on your phone. The name comes from the carrier pigeon — it delivers your PC's files straight to your pocket.
+**PigeonFile** is an open-source **PC ↔ Phone file transfer & remote access** tool. Install the server on your computer and the client on your phone, and from then on — whether you are on the same Wi-Fi or thousands of miles away on cellular data — you can browse, preview, download, and upload files on your PC, just as if they were on your phone. It also supports cross-folder search and one-click Tailscale networking (no public IP or port forwarding required). The name comes from the carrier pigeon — it delivers your PC's files straight to your pocket.
 
 ---
 
