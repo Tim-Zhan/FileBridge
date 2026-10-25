@@ -161,11 +161,28 @@ object TailnetManager {
             try {
                 infoRef.set(NetInfo(NetState.NeedsLogin, detail = "正在启动组网并打开授权页…"))
                 notifyListeners()
-                // 官方登录流程：先 start 启动后端，再 login-interactive（缺 start 会空指针崩溃）
+                // 官方登录流程：先 editPrefs 取完整配置，再 start 启动后端，最后 login-interactive
+                CrashLog.log("Tailnet", "login: 调用 PATCH /localapi/v0/prefs")
+                val prefsResp = app.callLocalAPI(
+                    30000, "PATCH", "/localapi/v0/prefs", StringBody("{}")
+                )
+                val prefsBody = String(prefsResp.bodyBytes() ?: ByteArray(0))
+                Log.d(TAG, "prefs: ${prefsResp.statusCode()} $prefsBody")
+                CrashLog.log("Tailnet", "login: prefs 返回 ${prefsResp.statusCode()} $prefsBody")
+                if (prefsResp.statusCode() !in 200L..299L) {
+                    infoRef.set(NetInfo(NetState.Error, detail = "读取组网配置失败 (${prefsResp.statusCode()})"))
+                    notifyListeners()
+                    return@launch
+                }
+                // 把返回的完整 Prefs 加 WantRunning=true 作为 start 的 UpdatePrefs（与官方一致）
+                val prefsJson = JSONObject(prefsBody)
+                prefsJson.put("WantRunning", true)
+                val opts = JSONObject()
+                    .put("UpdatePrefs", prefsJson)
+                    .put("AuthKey", JSONObject.NULL)
                 CrashLog.log("Tailnet", "login: 调用 /localapi/v0/start")
                 val startResp = app.callLocalAPI(
-                    30000, "POST", "/localapi/v0/start",
-                    StringBody("""{"UpdatePrefs":{"WantRunning":true},"AuthKey":null}""")
+                    30000, "POST", "/localapi/v0/start", StringBody(opts.toString())
                 )
                 val startBody = String(startResp.bodyBytes() ?: ByteArray(0))
                 Log.d(TAG, "start: ${startResp.statusCode()} $startBody")
