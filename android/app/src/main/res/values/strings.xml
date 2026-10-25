@@ -23,6 +23,11 @@
     <string name="net_error">无法连接服务器，请检查地址和网络</string>
     <string name="file_too_big">文件过大，暂不支持流式预览，请直接下载</string>
     <string name="upload">上传</string>
+    <string name="search">搜索</string>
+    <string name="search_hint">搜索文件名</string>
+    <string name="search_failed">搜索失败，请检查网络后重试</string>
+    <string name="sort_by_name">按名称排序</string>
+    <string name="sort_by_time">按时间排序</string>
     <string name="uploading">正在上传…</string>
     <string name="upload_done">已上传</string>
     <string name="upload_failed">上传失败</string>

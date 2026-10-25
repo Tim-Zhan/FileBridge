@@ -8,6 +8,7 @@ import (
 	_ "image/gif"
 	_ "image/png"
 	"io"
+	"io/fs"
 	"log"
 	"net"
 	"net/http"
@@ -182,6 +183,66 @@ func (a *apiServer) handleList(w http.ResponseWriter, r *http.Request) {
 			return strings.ToLower(items[i].Name) < strings.ToLower(items[j].Name)
 		})
 		writeJSON(w, listResp{Path: reqPath, Items: items})
+	})(w, r)
+}
+
+// ---- API: 搜索（跨所有共享目录递归，按文件名包含匹配） ----
+
+func (a *apiServer) handleSearch(w http.ResponseWriter, r *http.Request) {
+	requireAuth(a.cfg, func(w http.ResponseWriter, r *http.Request) {
+		q := strings.TrimSpace(r.URL.Query().Get("q"))
+		if q == "" {
+			http.Error(w, "请输入搜索关键词", http.StatusBadRequest)
+			return
+		}
+		ql := strings.ToLower(q)
+		roots := a.cfg.roots()
+		results := make([]fileEntry, 0)
+		const maxResults = 300
+		for i, dir := range roots {
+			_ = filepath.WalkDir(dir, func(p string, d fs.DirEntry, err error) error {
+				if err != nil {
+					if d != nil && d.IsDir() {
+						return filepath.SkipDir
+					}
+					return nil
+				}
+				if d.IsDir() {
+					// 跳过隐藏目录，避免把系统目录拖进来
+					if strings.HasPrefix(d.Name(), ".") {
+						return filepath.SkipDir
+					}
+					return nil
+				}
+				if len(results) >= maxResults {
+					return filepath.SkipAll
+				}
+				if !strings.Contains(strings.ToLower(d.Name()), ql) {
+					return nil
+				}
+				fi, err := d.Info()
+				if err != nil {
+					return nil
+				}
+				rel, err := filepath.Rel(dir, p)
+				if err != nil {
+					return nil
+				}
+				rel = filepath.ToSlash(rel)
+				results = append(results, fileEntry{
+					Name:    d.Name(),
+					IsDir:   false,
+					Size:    fi.Size(),
+					ModTime: fi.ModTime().Format(time.RFC3339),
+					Path:    fmt.Sprintf("%d/%s", i, rel),
+				})
+				return nil
+			})
+			if len(results) >= maxResults {
+				break
+			}
+		}
+		writeJSON(w, listResp{Path: "", Items: results})
 	})(w, r)
 }
 

@@ -11,8 +11,8 @@ android {
         applicationId = "com.filebridge.app"
         minSdk = 26
         targetSdk = 34
-        versionCode = 9
-        versionName = "1.10"
+        versionCode = 21
+        versionName = "2.2"
     }
 
     signingConfigs {
@@ -55,7 +55,4 @@ dependencies {
     implementation("androidx.media3:media3-ui:1.3.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-
-    // Tailscale 组网核心（内嵌，App 无需再装 Tailscale）
-    implementation(files("libs/libtailscale.aar"))
 }

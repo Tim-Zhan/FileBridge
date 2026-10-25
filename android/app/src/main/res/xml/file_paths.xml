@@ -3,5 +3,5 @@
     <cache-path name="downloads" path="downloads/" />
     <cache-path name="media" path="media/" />
     <cache-path name="open_cache" path="open_cache/" />
-    <files-path name="diag" path="diag.log" />
+    <cache-path name="install" path="." />
 </paths>

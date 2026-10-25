@@ -46,6 +46,14 @@ class BrowseActivity : AppCompatActivity() {
     private var downloadDialog: AlertDialog? = null
     private val scope = CoroutineScope(Dispatchers.Main + Job())
 
+    /** 排序/搜索状态 */
+    private enum class SortMode { NAME, TIME }
+    private var sortMode = SortMode.NAME
+    private var searchQuery = ""
+    private var searching = false
+    private var searchView: androidx.appcompat.widget.SearchView? = null
+    private var allItems: List<FileEntry> = emptyList()
+
     /** 系统文件选择器：选中的文件直接上传到当前浏览的目录 */
     private val uploadLauncher =
         registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -62,6 +70,8 @@ class BrowseActivity : AppCompatActivity() {
             ?: run { finish(); return }
 
         binding.toolbar.title = server.name
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(false)
         binding.toolbar.setNavigationOnClickListener { goUp() }
         binding.fileList.layoutManager = LinearLayoutManager(this)
         binding.fileList.adapter = adapter
@@ -72,6 +82,33 @@ class BrowseActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_browse, menu)
+
+        val searchItem = menu.findItem(R.id.action_search)
+        val searchView = searchItem.actionView as? androidx.appcompat.widget.SearchView
+        this.searchView = searchView
+        searchView?.apply {
+            queryHint = getString(R.string.search_hint)
+            setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
+                override fun onQueryTextSubmit(q: String?): Boolean {
+                    q?.trim()?.takeIf { it.isNotEmpty() }?.let { runSearch(it) }
+                    return true
+                }
+                override fun onQueryTextChange(q: String?): Boolean {
+                    searchQuery = q?.trim() ?: ""
+                    if (searchQuery.isNotEmpty()) {
+                        searching = true
+                        runSearch(searchQuery)
+                    } else {
+                        searching = false
+                        applyView()
+                    }
+                    return true
+                }
+            })
+        }
+        // 当前排序项打勾
+        menu.findItem(R.id.action_sort_name).isChecked = sortMode == SortMode.NAME
+        menu.findItem(R.id.action_sort_time).isChecked = sortMode == SortMode.TIME
         return true
     }
 
@@ -86,6 +123,18 @@ class BrowseActivity : AppCompatActivity() {
                 Toast.makeText(this, getString(R.string.clear_memory_done), Toast.LENGTH_SHORT).show()
                 true
             }
+            R.id.action_sort_name -> {
+                sortMode = SortMode.NAME
+                item.isChecked = true
+                applyView()
+                true
+            }
+            R.id.action_sort_time -> {
+                sortMode = SortMode.TIME
+                item.isChecked = true
+                applyView()
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
     }
@@ -96,13 +145,18 @@ class BrowseActivity : AppCompatActivity() {
     }
 
     private fun loadDir(path: String) {
+        // 进入目录：退出搜索模式，回到目录列表
+        searching = false
+        searchQuery = ""
+        searchView?.setQuery("", false)
         currentPath = path
         binding.currentPath.text = if (path.isEmpty()) "/" else "/$path/"
         binding.swipeRefresh.isRefreshing = true
         scope.launch {
             try {
                 val items = withContext(Dispatchers.IO) { Api.list(server, path) }
-                adapter.submit(items)
+                allItems = items
+                applyView()
             } catch (e: AuthException) {
                 Toast.makeText(this@BrowseActivity, getString(R.string.auth_failed), Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
@@ -117,6 +171,50 @@ class BrowseActivity : AppCompatActivity() {
             }
             binding.swipeRefresh.isRefreshing = false
         }
+    }
+
+    /** 跨目录搜索：调服务端 /api/search，结果含所在路径 */
+    private fun runSearch(q: String) {
+        binding.swipeRefresh.isRefreshing = true
+        scope.launch {
+            try {
+                val results = withContext(Dispatchers.IO) { Api.search(server, q) }
+                adapter.submit(results, fromSearch = true)
+            } catch (e: AuthException) {
+                Toast.makeText(this@BrowseActivity, getString(R.string.auth_failed), Toast.LENGTH_LONG).show()
+            } catch (e: Exception) {
+                val m = e.message ?: ""
+                val hasCn = m.any { it.code in 0x4E00..0x9FFF }
+                if (m.isNotEmpty() && m.length < 100 && hasCn) {
+                    Toast.makeText(this@BrowseActivity, m, Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(this@BrowseActivity, getString(R.string.search_failed), Toast.LENGTH_LONG).show()
+                }
+            }
+            binding.swipeRefresh.isRefreshing = false
+        }
+    }
+
+    /** 按当前搜索词过滤 + 排序后刷新列表（文件夹始终在前；搜索模式下不调用） */
+    private fun applyView() {
+        if (searching) return
+        var list = allItems
+        if (searchQuery.isNotEmpty()) {
+            val q = searchQuery.lowercase(Locale.getDefault())
+            list = list.filter { it.name.lowercase(Locale.getDefault()).contains(q) }
+        }
+        val cmp = when (sortMode) {
+            SortMode.NAME -> compareBy<FileEntry> { it.name.lowercase(Locale.getDefault()) }
+            SortMode.TIME -> compareByDescending<FileEntry> { parseTimeMs(it.modTime) }
+        }
+        list = list.sortedWith(compareByDescending<FileEntry> { it.isDir }.then(cmp))
+        adapter.submit(list)
+    }
+
+    private fun parseTimeMs(iso: String): Long = try {
+        java.time.OffsetDateTime.parse(iso).toInstant().toEpochMilli()
+    } catch (_: Exception) {
+        0L
     }
 
     private fun goUp() {
@@ -201,7 +299,7 @@ class BrowseActivity : AppCompatActivity() {
             .setCancelable(false)
             .create()
         dialog.show()
-        val dest = File(cacheDir, "downloads/${entry.name}").apply { parentFile?.mkdirs() }
+        val dest = File(cacheDir, "downloads/${entry.path.replace('/', '_')}").apply { parentFile?.mkdirs() }
         scope.launch {
             try {
                 withContext(Dispatchers.IO) { Api.download(server, entry, dest) { _, _ -> } }
@@ -287,7 +385,7 @@ class BrowseActivity : AppCompatActivity() {
         downloadDialog = dialog
         dialog.show()
 
-        val dest = File(cacheDir, "downloads/${entry.name}").apply {
+        val dest = File(cacheDir, "downloads/${entry.path.replace('/', '_')}").apply {
             parentFile?.mkdirs()
         }
         scope.launch {
@@ -375,9 +473,11 @@ class BrowseActivity : AppCompatActivity() {
     ) : RecyclerView.Adapter<FileAdapter.Holder>() {
 
         private var items: List<FileEntry> = emptyList()
+        private var fromSearch = false
 
-        fun submit(list: List<FileEntry>) {
+        fun submit(list: List<FileEntry>, fromSearch: Boolean = false) {
             items = list
+            this.fromSearch = fromSearch
             notifyDataSetChanged()
         }
 
@@ -388,10 +488,10 @@ class BrowseActivity : AppCompatActivity() {
             return Holder(v)
         }
 
-        override fun getItemCount(): Int = items.size + 1 // 末尾始终有一个"上传"条目
+        override fun getItemCount(): Int = items.size + if (fromSearch) 0 else 1 // 非搜索模式末尾有"上传"条目
 
         override fun onBindViewHolder(holder: Holder, position: Int) {
-            if (position == items.size) {
+            if (!fromSearch && position == items.size) {
                 // 列表底部：上传按钮（上传到当前浏览的文件夹）
                 holder.thumbJob?.cancel()
                 holder.thumb.visibility = View.GONE
@@ -405,7 +505,11 @@ class BrowseActivity : AppCompatActivity() {
             }
             val e = items[position]
             holder.name.text = e.name
-            holder.meta.text = if (e.isDir) {
+            holder.meta.text = if (fromSearch) {
+                // 搜索模式：显示所在路径（去掉共享目录序号前缀），一眼知道在哪
+                val rel = e.path.substringAfter('/')
+                if (e.isDir) "$rel · 文件夹" else "$rel · ${Api.formatSize(e.size)}"
+            } else if (e.isDir) {
                 "文件夹"
             } else {
                 "${Api.formatSize(e.size)} · ${formatTime(e.modTime)}"

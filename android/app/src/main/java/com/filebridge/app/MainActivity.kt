@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
@@ -15,18 +14,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.filebridge.app.databinding.ActivityMainBinding
 
-/** 服务器列表：添加 / 编辑 / 删除 / 进入；顶部集成 Tailscale 组网助手 */
-class MainActivity : AppCompatActivity(), TailnetManager.Listener {
+/** 服务器列表：添加 / 编辑 / 删除 / 进入 */
+class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private val adapter = ServerAdapter { server -> openServer(server) }
-
-    /** VPN 授权 Intent 引用（startActivityForResult 后置空） */
-    var vpnPrepareRequest: Intent? = null
-
-    private lateinit var tvNetState: TextView
-    private lateinit var btnNetAction: Button
-    private lateinit var btnNetLogout: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,92 +34,52 @@ class MainActivity : AppCompatActivity(), TailnetManager.Listener {
 
         binding.fabAdd.setOnClickListener { showServerDialog(null) }
 
-        tvNetState = binding.netState
-        btnNetAction = binding.btnNetAction
-        btnNetLogout = binding.btnNetLogout
-
-        btnNetAction.setOnClickListener {
-            // 组网核心按需启动：点击按钮时才初始化（失败只影响组网，不影响 App）
-            TailnetManager.ensureInit(this)
-            when (TailnetManager.currentInfo().state) {
-                TailnetManager.NetState.Ready,
-                TailnetManager.NetState.NeedsLogin -> {
-                    if (TailnetManager.currentInfo().state == TailnetManager.NetState.Ready) {
-                        TailnetManager.startVpn(this)
-                    } else {
-                        TailnetManager.login()
-                    }
-                }
-                TailnetManager.NetState.Connected -> TailnetManager.stopVpn()
-                else -> TailnetManager.login()
-            }
-        }
-        btnNetLogout.setOnClickListener {
-            AlertDialog.Builder(this)
-                .setTitle("退出组网登录")
-                .setMessage("将清除这台手机的组网登录状态并断开连接，确定？")
-                .setPositiveButton("退出") { _, _ -> TailnetManager.logout() }
-                .setNegativeButton("取消", null)
-                .show()
-        }
-
-        // 诊断日志：闪退后重开 App，可导出 diag.log 用于定位
-        binding.btnExportLog.setOnClickListener {
-            exportDiagnosticLog()
-        }
-
-        TailnetManager.addListener(this)
-        onNetInfoChanged(TailnetManager.currentInfo())
+        // 组网：交给官方 Tailscale App（未安装则引导下载）
+        binding.btnMesh.setOnClickListener { handleMesh() }
+        refreshMeshStatus()
     }
 
     override fun onDestroy() {
-        TailnetManager.removeListener(this)
+        super.onDestroy()
         // 退出 App 时清理 30 分钟前的预览缓存（刚预览的最近文件保留，其余清掉）
         CacheManager.cleanup(this, 30 * 60 * 1000L)
-        super.onDestroy()
     }
 
     override fun onResume() {
         super.onResume()
         refreshList()
+        refreshMeshStatus()
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQ_VPN_PREPARE) {
-            if (resultCode == RESULT_OK) {
-                TailnetManager.onVpnPrepared(this)
-            } else {
-                Toast.makeText(this, "未授权 VPN，无法建立组网连接", Toast.LENGTH_SHORT).show()
-            }
-        }
+    /** 刷新组网状态显示 */
+    private fun refreshMeshStatus() {
+        val vpn = TailscaleHelper.isVpnActive(this)
+        binding.meshStatus.text = if (vpn) "组网：已开启（本机 IP 在 Tailscale App 查看）"
+        else "组网：未开启"
     }
 
-    override fun onNetInfoChanged(info: TailnetManager.NetInfo) {
-        runOnUiThread {
-            tvNetState.text = info.detail
-            when (info.state) {
-                TailnetManager.NetState.Connected -> {
-                    btnNetAction.text = "断开组网"
-                    btnNetLogout.visibility = View.GONE
-                }
-                TailnetManager.NetState.Ready -> {
-                    btnNetAction.text = "连接组网"
-                    btnNetLogout.visibility = View.VISIBLE
-                }
-                TailnetManager.NetState.NeedsLogin -> {
-                    btnNetAction.text = "登录组网"
-                    btnNetLogout.visibility = View.GONE
-                }
-                TailnetManager.NetState.Error -> {
-                    btnNetAction.text = "登录组网"
-                    btnNetLogout.visibility = View.GONE
-                }
-                else -> {
-                    btnNetAction.text = "登录组网"
-                    btnNetLogout.visibility = View.GONE
-                }
+    /** 点「组网」：已装官方 App 直接跳转；未装则从内置安装包引导安装 */
+    private fun handleMesh() {
+        if (TailscaleHelper.isTailscaleInstalled(this)) {
+            if (TailscaleHelper.launchTailscale(this)) {
+                Toast.makeText(this, "已打开 Tailscale，请确认组网后返回", Toast.LENGTH_LONG).show()
             }
+        } else {
+            AlertDialog.Builder(this)
+                .setTitle("安装 Tailscale（捆绑内置）")
+                .setMessage(
+                    "FileBridge 已内置官方 Tailscale 安装包，点「安装」即可完成组网 App 安装。" +
+                        "（内置包约 105MB，所以 FileBridge 安装包比较大。）\n\n" +
+                        "安装完成后：Tailscale 图标可长按收纳/隐藏，日常只用一个 FileBridge 图标，" +
+                        "点「组网」即可打开 Tailscale 完成登录组网。"
+                )
+                .setPositiveButton("安装") { _, _ ->
+                    if (!TailscaleHelper.installBundledApk(this)) {
+                        Toast.makeText(this, "启动安装失败，请到设置里允许安装未知应用后重试", Toast.LENGTH_LONG).show()
+                    }
+                }
+                .setNegativeButton("取消", null)
+                .show()
         }
     }
 
@@ -186,38 +138,6 @@ class MainActivity : AppCompatActivity(), TailnetManager.Listener {
             }
             .setNegativeButton("取消", null)
             .show()
-    }
-
-    companion object {
-        const val REQ_VPN_PREPARE = 9001
-    }
-
-    /** 通过系统分享导出诊断日志（直接发文本，不依赖文件路径，最稳） */
-    private fun exportDiagnosticLog() {
-        try {
-            val logFile = CrashLog.getLogFile() ?: run {
-                Toast.makeText(this, "暂无诊断日志", Toast.LENGTH_SHORT).show()
-                return
-            }
-            if (!logFile.exists()) {
-                Toast.makeText(this, "暂无诊断日志", Toast.LENGTH_SHORT).show()
-                return
-            }
-            val all = logFile.readText()
-            val lines = all.lines()
-            val tail = lines.takeLast(200).joinToString("\n")
-            val share = Intent(Intent.ACTION_SEND).apply {
-                type = "text/plain"
-                putExtra(
-                    Intent.EXTRA_TEXT,
-                    "FileBridge 诊断日志（共 ${lines.size} 行，取末尾 200 行）：\n\n$tail"
-                )
-            }
-            startActivity(Intent.createChooser(share, "导出诊断日志"))
-        } catch (e: Exception) {
-            CrashLog.log("ExportLog", "导出失败: ${e.message}\n${e.stackTraceToString()}")
-            Toast.makeText(this, "导出失败，已把错误写入日志: ${e.message}", Toast.LENGTH_SHORT).show()
-        }
     }
 
     inner class ServerAdapter(

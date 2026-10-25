@@ -80,6 +80,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", api.handleRoot)               // 本机配置页
 	mux.HandleFunc("/api/list", api.handleList)       // 列目录（鉴权）
+	mux.HandleFunc("/api/search", api.handleSearch)   // 跨目录搜索（鉴权）
 	mux.HandleFunc("/api/download", api.handleDownload) // 下载（鉴权，Range）
 	mux.HandleFunc("/api/thumb", api.handleThumb)       // 缩略图（鉴权）
 	mux.HandleFunc("/api/upload", api.handleUpload)   // 上传（鉴权）

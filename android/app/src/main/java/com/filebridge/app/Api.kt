@@ -68,6 +68,27 @@ object Api {
         }
     }
 
+    /** 跨目录搜索（服务端递归所有共享目录，按文件名包含匹配） */
+    suspend fun search(server: ServerInfo, q: String): List<FileEntry> = withContext(Dispatchers.IO) {
+        val url = "${server.baseUrl}/api/search?q=${java.net.URLEncoder.encode(q, "UTF-8")}"
+        val req = Request.Builder().url(url).header("Authorization", server.authHeader()).build()
+        client.newCall(req).execute().use { resp ->
+            handleError(resp)
+            val obj = JSONObject(resp.body?.string() ?: "")
+            val items = obj.getJSONArray("items")
+            (0 until items.length()).map { i ->
+                val o = items.getJSONObject(i)
+                FileEntry(
+                    name = o.getString("name"),
+                    isDir = o.getBoolean("isDir"),
+                    size = o.getLong("size"),
+                    modTime = o.getString("modTime"),
+                    path = o.getString("path")
+                )
+            }
+        }
+    }
+
     /** 下载到本地文件（流式，带进度回调） */
     suspend fun download(
         server: ServerInfo,

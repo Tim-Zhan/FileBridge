@@ -34,7 +34,7 @@ func selfPayload() ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	idx := bytes.Index(data, magicHeader)
+	idx := bytes.LastIndex(data, magicHeader)
 	if idx < 0 || idx+len(magicHeader) >= len(data) {
 		return nil, errors.New("安装程序损坏：找不到内嵌数据（请重新下载）")
 	}
