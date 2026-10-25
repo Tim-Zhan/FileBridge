@@ -6,12 +6,64 @@
     android:layout_height="match_parent"
     android:background="?attr/colorSurface">
 
+    <!-- 组网助手卡片 -->
+    <LinearLayout
+        android:id="@+id/netCard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="?attr/colorPrimaryContainer"
+        android:padding="14dp"
+        android:layout_marginHorizontal="12dp"
+        android:layout_marginTop="10dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tailscale 组网（已内置于本 App）"
+            android:textColor="?attr/colorOnPrimaryContainer"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/netState"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="组网未初始化"
+            android:textColor="?attr/colorOnPrimaryContainer"
+            android:textSize="13sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnNetAction"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="登录组网" />
+
+            <Button
+                android:id="@+id/btnNetLogout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="退出登录"
+                android:visibility="gone" />
+        </LinearLayout>
+    </LinearLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/serverList"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
         android:paddingHorizontal="12dp"
+        android:paddingTop="96dp"
         android:paddingVertical="12dp"
         android:paddingBottom="88dp" />
 

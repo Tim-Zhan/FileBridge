@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
@@ -14,11 +15,18 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.filebridge.app.databinding.ActivityMainBinding
 
-/** 服务器列表：添加 / 编辑 / 删除 / 进入 */
-class MainActivity : AppCompatActivity() {
+/** 服务器列表：添加 / 编辑 / 删除 / 进入；顶部集成 Tailscale 组网助手 */
+class MainActivity : AppCompatActivity(), TailnetManager.Listener {
 
     private lateinit var binding: ActivityMainBinding
     private val adapter = ServerAdapter { server -> openServer(server) }
+
+    /** VPN 授权 Intent 引用（startActivityForResult 后置空） */
+    var vpnPrepareRequest: Intent? = null
+
+    private lateinit var tvNetState: TextView
+    private lateinit var btnNetAction: Button
+    private lateinit var btnNetLogout: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,17 +41,87 @@ class MainActivity : AppCompatActivity() {
         refreshList()
 
         binding.fabAdd.setOnClickListener { showServerDialog(null) }
+
+        tvNetState = binding.netState
+        btnNetAction = binding.btnNetAction
+        btnNetLogout = binding.btnNetLogout
+
+        btnNetAction.setOnClickListener {
+            when (TailnetManager.currentInfo().state) {
+                TailnetManager.NetState.Ready,
+                TailnetManager.NetState.NeedsLogin -> {
+                    if (TailnetManager.currentInfo().state == TailnetManager.NetState.Ready) {
+                        TailnetManager.startVpn(this)
+                    } else {
+                        TailnetManager.login()
+                    }
+                }
+                TailnetManager.NetState.Connected -> TailnetManager.stopVpn()
+                else -> TailnetManager.login()
+            }
+        }
+        btnNetLogout.setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle("退出组网登录")
+                .setMessage("将清除这台手机的组网登录状态并断开连接，确定？")
+                .setPositiveButton("退出") { _, _ -> TailnetManager.logout() }
+                .setNegativeButton("取消", null)
+                .show()
+        }
+
+        TailnetManager.addListener(this)
+        onNetInfoChanged(TailnetManager.currentInfo())
     }
 
     override fun onDestroy() {
-        super.onDestroy()
+        TailnetManager.removeListener(this)
         // 退出 App 时清理 30 分钟前的预览缓存（刚预览的最近文件保留，其余清掉）
         CacheManager.cleanup(this, 30 * 60 * 1000L)
+        super.onDestroy()
     }
 
     override fun onResume() {
         super.onResume()
         refreshList()
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQ_VPN_PREPARE) {
+            if (resultCode == RESULT_OK) {
+                TailnetManager.onVpnPrepared(this)
+            } else {
+                Toast.makeText(this, "未授权 VPN，无法建立组网连接", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    override fun onNetInfoChanged(info: TailnetManager.NetInfo) {
+        runOnUiThread {
+            tvNetState.text = info.detail
+            when (info.state) {
+                TailnetManager.NetState.Connected -> {
+                    btnNetAction.text = "断开组网"
+                    btnNetLogout.visibility = View.GONE
+                }
+                TailnetManager.NetState.Ready -> {
+                    btnNetAction.text = "连接组网"
+                    btnNetLogout.visibility = View.VISIBLE
+                }
+                TailnetManager.NetState.NeedsLogin -> {
+                    btnNetAction.text = "登录组网"
+                    btnNetLogout.visibility = View.GONE
+                }
+                TailnetManager.NetState.Error -> {
+                    btnNetAction.text = "登录组网"
+                    btnNetLogout.visibility = View.GONE
+                }
+                else -> {
+                    btnNetAction.text = "登录组网"
+                    btnNetLogout.visibility = View.GONE
+                }
+            }
+        }
     }
 
     private fun refreshList() {
@@ -101,6 +179,10 @@ class MainActivity : AppCompatActivity() {
             }
             .setNegativeButton("取消", null)
             .show()
+    }
+
+    companion object {
+        const val REQ_VPN_PREPARE = 9001
     }
 
     inner class ServerAdapter(
