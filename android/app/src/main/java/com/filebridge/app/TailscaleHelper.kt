@@ -11,7 +11,7 @@ import java.io.File
 /**
  * Tailscale 组网助手：不内嵌 Tailscale 核心。
  * 「组网」交给官方 Tailscale App（未安装则引导下载安装），
- * FileBridge 只负责检测状态、一键跳转，保持轻量稳定。
+ * 信鸽只负责检测状态、一键跳转，保持轻量稳定。
  */
 object TailscaleHelper {
 

@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-// FileBridge 电脑端服务
+// 信鸽（PigeonFile）电脑端服务
 // 功能：HTTP 文件服务（列目录/下载/上传，支持 Range 断点续传）+ Basic/token 鉴权
 //       + 本机 Web 配置页 + Windows 开机自启 + 内嵌 Tailscale 组网（tsnet）
 // 电脑端配置一次，之后开机自动拉起、自动连接；手机 APP 与它配套使用。
@@ -90,7 +90,7 @@ func main() {
 	mux.HandleFunc("/api/tailscale/login", api.handleTSLogin)   // 触发组网登录
 
 	addr := "0.0.0.0:" + strconv.Itoa(listenPort)
-	log.Printf("FileBridge 服务已启动，监听 %s", addr)
+	log.Printf("信鸽服务已启动，监听 %s", addr)
 	log.Printf("本机配置页: http://127.0.0.1:%d/", listenPort)
 	log.Printf("共享目录: %q（未配置时手机端无法访问）", cfg.RootDir)
 

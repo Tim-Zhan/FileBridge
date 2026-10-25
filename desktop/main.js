@@ -19,7 +19,7 @@ const path = require('path');
 const IS_MAC = process.platform === 'darwin';
 const SERVICE_PORT = 8123;
 const SERVICE_URL = `http://127.0.0.1:${SERVICE_PORT}/`;
-const SERVICE_EXE = IS_MAC ? 'filebridge-server' : 'filebridge-server.exe';
+const SERVICE_EXE = IS_MAC ? 'pigeonfile-server' : 'pigeonfile-server.exe';
 const ICON = path.join(__dirname, 'icon.png');
 
 let win = null;
@@ -73,7 +73,7 @@ async function ensureService() {
     serviceProc = spawn(servicePath(), [], { windowsHide: !IS_MAC });
   } catch (e) {
     log('启动服务失败: ' + e.message);
-    dialog.showErrorBox('FileBridge', `无法启动服务：${e.message}`);
+    dialog.showErrorBox('信鸽', `无法启动服务：${e.message}`);
     return;
   }
   for (let i = 0; i < 40; i++) {
@@ -103,7 +103,7 @@ function loadSettingsPage() {
       'data:text/html;charset=utf-8,' +
         encodeURIComponent(
           '<div style="font-family:system-ui;color:#333;text-align:center;margin-top:38%;">' +
-            '<h2>FileBridge 电脑端</h2>' +
+            '<h2>信鸽 · 电脑端</h2>' +
             '<p style="color:#888;">正在启动文件服务，请稍候…</p>' +
             '<p style="color:#bbb;font-size:13px;">本窗口会自动加载设置页，无需手动操作</p>' +
             '</div>'
@@ -121,7 +121,7 @@ function createWindow() {
     height: 760,
     minWidth: 620,
     minHeight: 560,
-    title: 'FileBridge 电脑端',
+    title: '信鸽 · 电脑端',
     autoHideMenuBar: !IS_MAC,
     icon: IS_MAC ? undefined : ICON,
     backgroundColor: '#f5f7fa',
@@ -133,7 +133,7 @@ function createWindow() {
     'data:text/html;charset=utf-8,' +
       encodeURIComponent(
         '<div style="font-family:system-ui;color:#333;text-align:center;margin-top:38%;">' +
-          '<h2>FileBridge 电脑端</h2>' +
+          '<h2>信鸽 · 电脑端</h2>' +
           '<p style="color:#888;">正在启动文件服务，请稍候…</p>' +
           '</div>'
       )
@@ -164,7 +164,7 @@ function createWindow() {
 function createTray() {
   const icon = nativeImage.createFromPath(ICON);
   tray = new Tray(icon);
-  tray.setToolTip('FileBridge 电脑端（正在后台运行）');
+  tray.setToolTip('信鸽 · 电脑端（正在后台运行）');
   tray.setContextMenu(
     Menu.buildFromTemplate([
       { label: '打开设置面板', click: () => showWindow() },

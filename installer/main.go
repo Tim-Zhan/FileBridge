@@ -14,7 +14,7 @@ import (
 	"unsafe"
 )
 
-const APP_DIR = "FileBridge"
+const APP_DIR = "PigeonFile"
 
 // magicHeader 构建时写入 zip 数据前的固定标记（见 build.sh），用于精确定位内嵌 zip
 var magicHeader = []byte("FBZIP-MAGIC-V1\x00")
@@ -65,7 +65,7 @@ func msgBox(text, title string, flags uintptr) int {
 }
 
 func main() {
-	// 安装目标：%LOCALAPPDATA%\FileBridge
+	// 安装目标：%LOCALAPPDATA%\PigeonFile
 	local := os.Getenv("LOCALAPPDATA")
 	if local == "" {
 		local = filepath.Join(os.Getenv("USERPROFILE"), "AppData", "Local")
@@ -73,12 +73,12 @@ func main() {
 	installDir := filepath.Join(local, APP_DIR)
 
 	// 如果已经安装了，先问是否覆盖重装
-	if _, err := os.Stat(filepath.Join(installDir, "FileBridge.exe")); err == nil {
+	if _, err := os.Stat(filepath.Join(installDir, "PigeonFile.exe")); err == nil {
 		r := msgBox(
-			"检测到 FileBridge 已安装。\n是否重新安装（覆盖旧版本）？",
-			"FileBridge 安装程序", MB_OKCANCEL|MB_ICONQUESTION)
+			"检测到信鸽（PigeonFile）已安装。\n是否重新安装（覆盖旧版本）？",
+			"信鸽 安装程序", MB_OKCANCEL|MB_ICONQUESTION)
 		if r != 1 {
-			msgBox("已取消安装。", "FileBridge 安装程序", MB_OK|MB_ICONINFORMATION)
+			msgBox("已取消安装。", "信鸽 安装程序", MB_OK|MB_ICONINFORMATION)
 			return
 		}
 	}
@@ -86,27 +86,27 @@ func main() {
 	// 解压
 	payload, err := selfPayload()
 	if err != nil {
-		msgBox("安装失败：\n"+err.Error(), "FileBridge 安装程序", MB_OK|MB_ICONERROR)
+		msgBox("安装失败：\n"+err.Error(), "信鸽 安装程序", MB_OK|MB_ICONERROR)
 		return
 	}
 	if err := extractPayload(payload, installDir); err != nil {
-		msgBox("安装失败：\n"+err.Error(), "FileBridge 安装程序", MB_OK|MB_ICONERROR)
+		msgBox("安装失败：\n"+err.Error(), "信鸽 安装程序", MB_OK|MB_ICONERROR)
 		return
 	}
 
 	// 桌面/开始菜单快捷方式
 	desktop := desktopPath()
 	startMenu := startMenuPath()
-	lnkTarget := filepath.Join(installDir, "FileBridge.exe")
-	_ = createShortcut(filepath.Join(desktop, "FileBridge.lnk"), lnkTarget, installDir)
-	_ = createShortcut(filepath.Join(startMenu, "FileBridge.lnk"), lnkTarget, installDir)
+	lnkTarget := filepath.Join(installDir, "PigeonFile.exe")
+	_ = createShortcut(filepath.Join(desktop, "PigeonFile.lnk"), lnkTarget, installDir)
+	_ = createShortcut(filepath.Join(startMenu, "PigeonFile.lnk"), lnkTarget, installDir)
 
 	// 写入卸载注册表（控制面板可卸载）
 	_ = registerUninstall(installDir, desktop, startMenu)
 
 	msgBox(
-		"安装完成！\n\n已安装到："+installDir+"\n已创建桌面和开始菜单快捷方式。\n\n即将启动 FileBridge。",
-		"FileBridge 安装程序", MB_OK|MB_ICONINFORMATION)
+		"安装完成！\n\n已安装到："+installDir+"\n已创建桌面和开始菜单快捷方式。\n\n即将启动信鸽。",
+		"信鸽 安装程序", MB_OK|MB_ICONINFORMATION)
 
 	// 启动
 	cmd := exec.Command(lnkTarget)
@@ -187,16 +187,16 @@ func createShortcut(lnkPath, target, workDir string) error {
 // registerUninstall 写控制面板卸载项（UninstallString 用 PowerShell 删除安装目录与快捷方式）
 func registerUninstall(installDir, desktop, startMenu string) error {
 	uninstallPs := fmt.Sprintf(
-		`Remove-Item -Recurse -Force '%s'; Remove-Item -Force '%s'; Remove-Item -Force '%s'; Remove-Item 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\FileBridge' -Force`,
+		`Remove-Item -Recurse -Force '%s'; Remove-Item -Force '%s'; Remove-Item -Force '%s'; Remove-Item 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\PigeonFile' -Force`,
 		installDir,
-		filepath.Join(desktop, "FileBridge.lnk"),
-		filepath.Join(startMenu, "FileBridge.lnk"),
+		filepath.Join(desktop, "PigeonFile.lnk"),
+		filepath.Join(startMenu, "PigeonFile.lnk"),
 	)
 	uninstallCmd := fmt.Sprintf(
 		`powershell -NoProfile -ExecutionPolicy Bypass -Command "%s"`,
 		strings.ReplaceAll(uninstallPs, `"`, `\"`),
 	)
-	key := `HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\FileBridge`
+	key := `HKCU\Software\Microsoft\Windows\CurrentVersion\Uninstall\PigeonFile`
 	_ = exec.Command("reg", "add", key, "/v", "DisplayName", "/t", "REG_SZ", "/d", "FileBridge 电脑端", "/f").Run()
 	_ = exec.Command("reg", "add", key, "/v", "DisplayVersion", "/t", "REG_SZ", "/d", "4.2", "/f").Run()
 	_ = exec.Command("reg", "add", key, "/v", "Publisher", "/t", "REG_SZ", "/d", "FileBridge", "/f").Run()

@@ -528,7 +528,7 @@ func (a *apiServer) handleAutostart(w http.ResponseWriter, r *http.Request) {
 				http.Error(w, "注册失败（可能需要管理员权限，请右键程序以管理员身份运行）："+err.Error(), http.StatusInternalServerError)
 				return
 			}
-			writeOK(w, "已注册：开机自动启动 FileBridge")
+			writeOK(w, "已注册：开机自动启动信鸽")
 		case "remove":
 			err = removeAutostart()
 			if err != nil {

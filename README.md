@@ -1,11 +1,11 @@
-# FileBridge
+# PigeonFile 信鸽
 
 > 手机随时访问电脑文件 —— 体验像本地一样。
 > Your PC's files, in your pocket — browse, preview, and transfer as if they were local.
 
-**FileBridge** 是一套「电脑 ⇄ 手机」文件桥接工具：电脑上装一份服务端，手机上装一份客户端，之后无论在同一个 WiFi 下、还是在千里之外的 4G/5G 网络，手机都能像翻本地文件一样浏览、预览、下载、上传电脑里的文件。
+**信鸽（PigeonFile）** 是一套「电脑 ⇄ 手机」文件桥接工具：电脑上装一份服务端，手机上装一份客户端，之后无论在同一个 WiFi 下、还是在千里之外的 4G/5G 网络，手机都能像翻本地文件一样浏览、预览、下载、上传电脑里的文件。名字取自「飞鸽传书」——把电脑上的文件，像信鸽一样送到你的掌上。
 
-**FileBridge** is a PC ↔ Phone file bridge. Install the server on your computer and the client on your phone, and from then on — whether you are on the same Wi-Fi or thousands of miles away on cellular data — you can browse, preview, download, and upload files on your PC, just as if they were on your phone.
+**PigeonFile** is a PC ↔ Phone file bridge. Install the server on your computer and the client on your phone, and from then on — whether you are on the same Wi-Fi or thousands of miles away on cellular data — you can browse, preview, download, and upload files on your PC, just as if they were on your phone. The name comes from the carrier pigeon — it delivers your PC's files straight to your pocket.
 
 ---
 
@@ -31,8 +31,8 @@
 
 ### 一、电脑端 / On your PC
 
-1. **Windows**：运行 `FileBridge-电脑端-安装版-v6.exe`，一键安装（自动创建桌面/开始菜单快捷方式，控制面板可卸载）。
-2. **macOS**：下载对应芯片的包（`FileBridge-macOS-Apple芯片-v6.zip` 或 `FileBridge-macOS-Intel芯片-v6.zip`），解压后把 `FileBridge.app` 拖入「应用程序」。
+1. **Windows**：运行 `PigeonFile-Setup-Windows-v7.0.exe`，一键安装（自动创建桌面/开始菜单快捷方式，控制面板可卸载）。
+2. **macOS**：下载对应芯片的包（`PigeonFile-macOS-Apple-Silicon-v7.0.zip` 或 `PigeonFile-macOS-Intel-v7.0.zip`），解压后把 `PigeonFile.app` 拖入「应用程序」。
 3. 打开设置窗口，配置：
    - **共享目录**：一行一个，例如 `D:\照片`、`E:\文档`（Windows）或 `/Users/你的名字/照片`（macOS）
    - **用户名 / 密码**：手机端连接用，务必设置
@@ -41,22 +41,22 @@
 
 ### 二、手机端 / On your phone
 
-1. 安装 `FileBridge.apk`。
+1. 安装 `PigeonFile.apk`。
 2. 点右上角「**组网**」按钮：
    - 手机未装 Tailscale → 弹窗点「安装」，从内置包一键装官方 App；
    - 已安装 → 直接跳转 Tailscale，**用与电脑同一个账号登录**并开启组网。
 3. 添加服务器：名称随意，地址填电脑的 **Tailscale 组网 IP（`100.x.x.x`）**或**局域网 IP**，端口 `8123`，账号密码与电脑一致。
 4. 完成！浏览 → 点文件预览 → 长按「用其他应用打开 / 下载到…」→ 列表底部「➕」上传。想找文件？点右上角放大镜，跨目录搜索全电脑。
 
-> 小贴士：同一 WiFi 下直接用局域网 IP 即可，无需 Tailscale；外出时用组网 IP。Tailscale 图标可长按收纳/隐藏，日常只留 FileBridge 一个图标。
+> 小贴士：同一 WiFi 下直接用局域网 IP 即可，无需 Tailscale；外出时用组网 IP。Tailscale 图标可长按收纳/隐藏，日常只留信鸽一个图标。
 
 ## ⚠️ 关于杀软报毒 / About Antivirus False Positives
 
-Windows 版（尤其安装版 `FileBridge-电脑端-安装版-v6.exe`）偶尔会被 **360、腾讯管家等杀软提示"病毒/木马"**。**这是误报**，原因很明确，可自行核实：
+Windows 版（尤其安装版 `PigeonFile-Setup-Windows-v7.0.exe`）偶尔会被 **360、腾讯管家等杀软提示"病毒/木马"**。**这是误报**，原因很明确，可自行核实：
 
 - **没有商业代码签名证书**：个人开源项目未购买 Authenticode 签名，Windows 与杀软对"无签名的新程序"天然警惕，这是绝大多数报毒的直接原因。
 - **自解压安装包结构**：安装器 = 可执行程序 + 尾部内嵌的安装数据（自解压模式），属于杀软重点"启发式"扫描的对象。
-- **行为特征像"远控"**：FileBridge 服务端要**开机自启 + 监听 8123 端口 + 通过 Tailscale 建立 VPN 虚拟网卡 + 后台网络连接**——这一组合在启发式引擎眼里酷似"后门程序"的特征，实际它是你本人控制的文件共享服务。
+- **行为特征像"远控"**：信鸽服务端要**开机自启 + 监听 8123 端口 + 通过 Tailscale 建立 VPN 虚拟网卡 + 后台网络连接**——这一组合在启发式引擎眼里酷似"后门程序"的特征，实际它是你本人控制的文件共享服务。
 - **云端查杀无信誉**：新文件样本少，360 云查杀对没见过的新程序容易先报后放行。
 
 **怎么核实 / 处理**：
@@ -86,4 +86,4 @@ android/    安卓客户端（Kotlin）：服务器列表、目录浏览、跨�
 
 ---
 
-**Star ⭐ the repo if FileBridge helps you — and PRs are welcome!**
+**Star ⭐ the repo if PigeonFile helps you — and PRs are welcome!**

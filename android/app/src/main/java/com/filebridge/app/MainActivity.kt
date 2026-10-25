@@ -68,9 +68,9 @@ class MainActivity : AppCompatActivity() {
             AlertDialog.Builder(this)
                 .setTitle("安装 Tailscale（捆绑内置）")
                 .setMessage(
-                    "FileBridge 已内置官方 Tailscale 安装包，点「安装」即可完成组网 App 安装。" +
-                        "（内置包约 105MB，所以 FileBridge 安装包比较大。）\n\n" +
-                        "安装完成后：Tailscale 图标可长按收纳/隐藏，日常只用一个 FileBridge 图标，" +
+                    "信鸽已内置官方 Tailscale 安装包，点「安装」即可完成组网 App 安装。" +
+                        "（内置包约 105MB，所以信鸽安装包比较大。）\n\n" +
+                        "安装完成后：Tailscale 图标可长按收纳/隐藏，日常只用一个信鸽图标，" +
                         "点「组网」即可打开 Tailscale 完成登录组网。"
                 )
                 .setPositiveButton("安装") { _, _ ->

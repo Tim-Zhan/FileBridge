@@ -1,13 +1,13 @@
 {
-  "name": "filebridge-desktop",
+  "name": "pigeonfile-desktop",
   "version": "4.0.0",
-  "description": "FileBridge 电脑端桌面控制台：一键启动服务、配置、自启、Tailscale 状态，全部集成在一个窗口里",
+  "description": "信鸽（PigeonFile）电脑端桌面控制台：一键启动服务、配置、自启、Tailscale 状态，全部集成在一个窗口里",
   "main": "main.js",
-  "author": "FileBridge",
+  "author": "PigeonFile",
   "license": "MIT",
   "scripts": {
     "start": "electron .",
-    "pack": "electron-packager . FileBridge --platform=win32 --arch=x64 --out=dist --overwrite --icon=icon.ico --app-version=3.0.0"
+    "pack": "electron-packager . PigeonFile --platform=win32 --arch=x64 --out=dist --overwrite --icon=icon.ico --app-version=7.0.0"
   },
   "devDependencies": {
     "electron": "^28.3.3",

@@ -30,7 +30,7 @@ func configPageHTML(c *Config, port int) string {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>FileBridge 电脑端设置</title>
+<title>信鸽 · 电脑端设置</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f7fa;color:#1f2937;padding:24px 12px}
@@ -66,7 +66,7 @@ func configPageHTML(c *Config, port int) string {
 </head>
 <body>
 <div class="wrap">
-<h1>FileBridge 电脑端设置</h1>
+<h1>信鸽 · 电脑端设置</h1>
 <div class="sub">版本 v` + version + ` · 配置一次，之后重启自动运行。设置页仅供本机访问。</div>
 
 <div class="card">
@@ -102,12 +102,12 @@ func configPageHTML(c *Config, port int) string {
 
 <div class="card">
   <h2>③ 开机自启</h2>
-  <div>开启后，电脑重启会自动运行 FileBridge，无需手动打开。</div>
+  <div>开启后，电脑重启会自动运行信鸽，无需手动打开。</div>
   <div style="margin-top:10px">
     <button class="btn btn-green" onclick="autostart('install')">开启开机自启</button>
     <button class="btn btn-gray" onclick="autostart('remove')">关闭开机自启</button>
   </div>
-  <div class="tip">如提示需要管理员权限，请右键 FileBridge 程序 → 以管理员身份运行 → 再点一次。</div>
+  <div class="tip">如提示需要管理员权限，请右键信鸽程序 → 以管理员身份运行 → 再点一次。</div>
   <div class="msg" id="asMsg"></div>
 </div>
 
@@ -127,7 +127,7 @@ func configPageHTML(c *Config, port int) string {
   <h2>手机 APP 使用方法</h2>
   <div class="tip">
   ① 手机安装 Tailscale APP，登录与电脑端<b>同一个账号</b>；<br>
-  ② 打开 FileBridge 手机 APP，添加服务器：地址填本页的 <b>局域网地址</b>（家里）或 <b>组网地址</b>（外网），端口 8123；<br>
+  ② 打开信鸽手机 APP，添加服务器：地址填本页的 <b>局域网地址</b>（家里）或 <b>组网地址</b>（外网），端口 8123；<br>
   ③ 输入上面设置的 用户名/密码，即可浏览、下载、用手机自带软件打开文件。
   </div>
 </div>

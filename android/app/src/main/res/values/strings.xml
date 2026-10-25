@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">FileBridge</string>
+    <string name="app_name">信鸽</string>
     <string name="servers_title">我的服务器</string>
     <string name="add_server">添加服务器</string>
     <string name="empty_servers">还没有服务器\n点击右下角 + 添加</string>
