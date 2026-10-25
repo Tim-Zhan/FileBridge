@@ -211,7 +211,11 @@ object Api {
                 val msg = resp.body?.string()?.take(120)?.trim().orEmpty()
                 throw IOException(if (msg.isNotEmpty()) msg else "没有权限访问该文件夹")
             }
-            else -> if (!resp.isSuccessful) throw IOException("HTTP ${resp.code}")
+            else -> if (!resp.isSuccessful) {
+                // 4xx/5xx：尽量把服务端的中文原因带给用户，而不是笼统的"网络错误"
+                val msg = resp.body?.string()?.take(120)?.trim().orEmpty()
+                throw IOException(if (msg.isNotEmpty()) msg else "HTTP ${resp.code}")
+            }
         }
     }
 

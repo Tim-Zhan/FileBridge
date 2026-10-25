@@ -84,8 +84,11 @@ func (a *apiServer) safeJoin(reqPath string) (string, error) {
 	}
 	rel := strings.Join(segs[1:], "/")
 	clean := filepath.Clean(filepath.Join(absRoot, filepath.FromSlash(rel)))
-	// 必须仍在所选共享目录内
-	if clean != absRoot && !strings.HasPrefix(clean, absRoot+string(os.PathSeparator)) {
+	// 必须仍在所选共享目录内。
+	// 用 filepath.Rel 判断（兼容共享根为盘符根目录如 C:\ 时结尾自带分隔符，
+	// 旧版 HasPrefix 拼出双斜杠 C:\\ 导致所有子路径被误判越界）
+	r, err := filepath.Rel(absRoot, clean)
+	if err != nil || r == ".." || strings.HasPrefix(r, ".."+string(os.PathSeparator)) {
 		return "", fmt.Errorf("路径越界被拒绝: %s", reqPath)
 	}
 	return clean, nil
@@ -136,6 +139,10 @@ func (a *apiServer) handleList(w http.ResponseWriter, r *http.Request) {
 		}
 		info, err := os.Stat(abs)
 		if err != nil {
+			if os.IsPermission(err) {
+				http.Error(w, "没有权限访问该文件夹（系统目录需管理员）", http.StatusForbidden)
+				return
+			}
 			http.Error(w, "路径不存在: "+reqPath, http.StatusNotFound)
 			return
 		}
@@ -258,6 +265,10 @@ func (a *apiServer) handleDownload(w http.ResponseWriter, r *http.Request) {
 		}
 		info, err := os.Stat(abs)
 		if err != nil {
+			if os.IsPermission(err) {
+				http.Error(w, "没有权限读取该文件（系统文件需管理员）", http.StatusForbidden)
+				return
+			}
 			http.Error(w, "文件不存在", http.StatusNotFound)
 			return
 		}
